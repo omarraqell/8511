@@ -1,46 +1,37 @@
-import { describe, it, expect } from "vitest";
-import { ProductSchema, KBChunkSchema, loadProducts, loadKB } from "@/lib/catalog";
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
+import { describe, it, expect, afterAll } from "vitest";
+import { config as loadEnv } from "dotenv";
+loadEnv({ path: ".env.local" });
+import { prisma } from "@/lib/db";
+import { loadProducts, getProductBySlug, loadKB } from "@/lib/catalog";
 
 describe("catalog", () => {
-  it("validates a product", () => {
-    const p = ProductSchema.parse({
-      slug: "jordan-1-mid-hyper-royal",
-      name: "Jordan 1 Mid Hyper Royal",
-      brand: "nike",
-      image_url: "/images/products/jordan-1-mid-hyper-royal.jpg",
-      source_url: "https://www.eightyfiveeleven.com/product-page/jordan-1-mid-hyper-royal",
-      description: "Hyper Royal colorway, mid-cut.",
-    });
-    expect(p.brand).toBe("nike");
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
 
-  it("rejects unknown brand", () => {
-    expect(() =>
-      ProductSchema.parse({
-        slug: "x", name: "X", brand: "puma",
-        image_url: "/", source_url: "/", description: "",
-      })
-    ).toThrow();
+  it("loadProducts returns products with brand and variants", async () => {
+    const products = await loadProducts();
+    expect(products.length).toBeGreaterThan(0);
+    const p = products[0];
+    expect(p.brand).toBeDefined();
+    expect(p.brand.slug).toMatch(/nike|adidas|supreme|hats/);
+    expect(Array.isArray(p.variants)).toBe(true);
   });
 
-  it("validates a KB chunk", () => {
-    const c = KBChunkSchema.parse({
-      id: "svc-auth", type: "service",
-      title: "Sneaker Authentication", text: "...",
-    });
-    expect(c.type).toBe("service");
+  it("getProductBySlug returns one product or null", async () => {
+    const all = await loadProducts();
+    const slug = all[0].slug;
+    const single = await getProductBySlug(slug);
+    expect(single?.slug).toBe(slug);
+    expect((single?.variants.length ?? 0)).toBeGreaterThan(0);
+
+    const missing = await getProductBySlug("definitely-not-a-real-slug-xyz");
+    expect(missing).toBeNull();
   });
 
-  it("loadProducts reads a JSON file", () => {
-    const tmp = path.join(os.tmpdir(), `products-${Date.now()}.json`);
-    fs.writeFileSync(tmp, JSON.stringify([{
-      slug: "x", name: "X", brand: "nike",
-      image_url: "/x.jpg", source_url: "https://x", description: "x",
-    }]));
-    const arr = loadProducts(tmp);
-    expect(arr).toHaveLength(1);
+  it("loadKB still reads data/kb.json", () => {
+    const kb = loadKB();
+    expect(kb.length).toBeGreaterThan(0);
+    expect(kb[0].type).toMatch(/service|about|store|contact/);
   });
 });
