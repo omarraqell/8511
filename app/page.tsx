@@ -3,6 +3,10 @@ import Image from "next/image";
 import { loadProducts, loadKB } from "@/lib/catalog";
 import BrandMarquee from "@/components/layout/BrandMarquee";
 
+function formatPrice(p: { basePrice: { toString(): string } | null }) {
+  return p.basePrice ? `${p.basePrice.toString()} JOD` : null;
+}
+
 const BRAND_LABEL: Record<string, string> = {
   nike: "NIKE",
   adidas: "ADIDAS",
@@ -10,8 +14,8 @@ const BRAND_LABEL: Record<string, string> = {
   hats: "HATS",
 };
 
-export default function Home() {
-  const products = loadProducts();
+export default async function Home() {
+  const products = await loadProducts();
   const featured = products.slice(0, 3);
   const services = loadKB().filter(c => c.type === "service").slice(0, 4);
   const heroProduct = products[0];
@@ -19,8 +23,8 @@ export default function Home() {
   return (
     <main className="flex-grow">
       {/* HERO */}
-      <section className="min-h-[75vh] w-full grid grid-cols-1 lg:grid-cols-2 relative border-b border-on-surface/15">
-        <div className="flex flex-col justify-center px-6 md:px-10 lg:px-20 py-16 lg:py-0 border-r-0 lg:border-r border-on-surface/15">
+      <section className="w-full grid grid-cols-1 lg:grid-cols-2 relative border-b border-on-surface/15 pb-16 lg:pb-24">
+        <div className="flex flex-col justify-center px-6 md:px-10 lg:px-20 py-16 lg:py-24">
           <p className="font-label text-xs uppercase tracking-[0.3em] text-on-surface/60 mb-6">
             EST. 2021 — AMMAN
           </p>
@@ -45,17 +49,15 @@ export default function Home() {
             </Link>
           </div>
         </div>
-        <div className="relative bg-white flex items-center justify-center p-10 min-h-[50vh]">
-          {heroProduct && (
-            <Image
-              src={heroProduct.image_url}
-              alt={heroProduct.name}
-              width={500}
-              height={500}
-              priority
-              className="w-full max-w-[500px] object-contain hover:scale-105 transition-transform duration-700 ease-out"
-            />
-          )}
+        <div className="relative flex items-center justify-center self-center w-full">
+          <Image
+            src="/hero.png"
+            alt="Featured sneaker"
+            width={400}
+            height={533}
+            priority
+            className="w-full max-w-[400px] object-contain hover:scale-105 transition-transform duration-700 ease-out"
+          />
         </div>
       </section>
 
@@ -84,7 +86,7 @@ export default function Home() {
             <Link key={p.slug} href={`/product/${p.slug}`} className="group cursor-pointer">
               <div className="aspect-square bg-white border border-on-surface/10 p-8 mb-6 relative overflow-hidden flex items-center justify-center transition-colors group-hover:border-primary">
                 <Image
-                  src={p.image_url}
+                  src={p.imageUrl}
                   alt={p.name}
                   fill
                   className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
@@ -97,7 +99,7 @@ export default function Home() {
                 {p.name}
               </h3>
               <p className="font-label text-sm text-on-surface/60 tracking-widest">
-                {p.price ?? BRAND_LABEL[p.brand]}
+                {formatPrice(p) ?? BRAND_LABEL[p.brand.slug]}
               </p>
             </Link>
           ))}
