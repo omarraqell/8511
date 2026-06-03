@@ -37,7 +37,7 @@ export default async function AdminProductsPage() {
           name: p.brand.name,
           slug: p.brand.slug,
         },
-        basePrice: p.basePrice,
+        basePrice: p.basePrice ? Number(p.basePrice) : null,
         imageUrl: p.imageUrl,
         variants: p.variants.map(v => ({
           id: v.id,
