@@ -27,7 +27,7 @@ export default async function AdminDashboardLayout({
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
       />
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-[#0A0A0A] text-[#F7F7F4] flex flex-col border-r border-[#0A0A0A]/10 shrink-0">
+      <aside className="w-full md:w-64 bg-[#0A0A0A] text-[#F7F7F4] flex flex-col border-r border-[#0A0A0A]/10 shrink-0 md:sticky md:top-0 md:h-screen">
         <div className="p-8 border-b border-[#F7F7F4]/10">
           <Link href="/" className="font-display text-3xl uppercase tracking-tighter hover:text-primary transition-colors block">
             8511
