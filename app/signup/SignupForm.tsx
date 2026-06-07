@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, sendEmailVerification } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { postSession } from "@/lib/auth/postSession";
 import GoogleIcon from "@/components/icons/GoogleIcon";
@@ -28,8 +28,9 @@ export default function SignupForm() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, String(formData.get("email")), password);
       await updateProfile(cred.user, { displayName: String(formData.get("name")) });
+      await sendEmailVerification(cred.user);
       await postSession(cred.user);
-      router.push("/");
+      router.push("/verify-email");
       router.refresh();
     } catch {
       setError("Could not create account (email may already be in use).");
