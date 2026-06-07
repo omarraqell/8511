@@ -70,6 +70,10 @@ export default function CheckoutClient() {
     );
   }
 
+  if (loggedIn === null) {
+    return <p className="font-body text-sm text-muted">Loading…</p>;
+  }
+
   if (loggedIn === false) {
     return (
       <p className="font-body text-sm text-muted">

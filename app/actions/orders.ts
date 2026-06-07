@@ -127,6 +127,12 @@ export async function checkout(input: {
     } catch (err) {
       console.error("[checkout] cart clear failed (order still placed):", err);
     }
+  } else {
+    // The order failed after we created the address — remove the orphan so it
+    // doesn't linger unattached to any order.
+    await prisma.address
+      .delete({ where: { id: addr.id } })
+      .catch((err) => console.error("[checkout] orphan address cleanup failed:", err));
   }
   return result;
 }
