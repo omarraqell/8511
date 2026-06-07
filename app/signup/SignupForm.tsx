@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { postSession } from "@/lib/auth/postSession";
+import GoogleIcon from "@/components/icons/GoogleIcon";
 
 const inputCls = "w-full bg-transparent border border-ink/20 px-4 py-3 text-base text-ink focus:border-accent outline-none";
 const labelCls = "block font-label text-[11px] tracking-wider2 text-muted mb-2";
@@ -66,7 +67,8 @@ export default function SignupForm() {
           {busy ? "…" : "SIGN UP →"}
         </button>
       </form>
-      <button onClick={googleSignup} disabled={busy} className="border border-ink/20 px-7 py-3.5 font-label text-[11px] tracking-wider2 hover:border-accent transition-colors">
+      <button onClick={googleSignup} disabled={busy} className="flex items-center justify-center gap-3 border border-ink/20 px-7 py-3.5 font-label text-[11px] tracking-wider2 hover:border-accent transition-colors disabled:opacity-50">
+        <GoogleIcon />
         SIGN UP WITH GOOGLE
       </button>
       <div className="font-label text-[11px] tracking-wider2 text-muted">
