@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { getCurrentUserWithVerification } from "@/lib/auth/session";
 import { sendOwnerEmail } from "@/lib/email";
+import { cookies } from "next/headers";
 
 export type PlaceOrderInput = {
   addressId: number;
@@ -79,6 +80,52 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
       });
     } catch (err) {
       console.error("[order] owner email failed (order still placed):", err);
+    }
+  }
+  return result;
+}
+
+export type AddressInput = {
+  line1: string;
+  line2?: string;
+  city: string;
+  country: string;
+  postal?: string;
+};
+
+export async function checkout(input: {
+  address: AddressInput;
+  items: PlaceOrderInput["items"];
+}): Promise<PlaceOrderResult> {
+  const auth = await getCurrentUserWithVerification();
+  if (!auth) return { ok: false, error: "auth required" };
+  if (!auth.emailVerified) {
+    return {
+      ok: false,
+      error: "Please verify your email before placing an order. Check your inbox for the verification link.",
+    };
+  }
+  if (!input.items.length) return { ok: false, error: "no items" };
+
+  const addr = await prisma.address.create({
+    data: {
+      userId: auth.user.id,
+      line1: input.address.line1,
+      line2: input.address.line2 || null,
+      city: input.address.city,
+      country: input.address.country,
+      postal: input.address.postal || null,
+    },
+  });
+
+  const result = await placeOrder({ addressId: addr.id, items: input.items });
+
+  if (result.ok) {
+    try {
+      const sid = (await cookies()).get("cart_sid")?.value;
+      if (sid) await prisma.cart.deleteMany({ where: { sessionId: sid, userId: null } });
+    } catch (err) {
+      console.error("[checkout] cart clear failed (order still placed):", err);
     }
   }
   return result;
