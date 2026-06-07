@@ -5,6 +5,8 @@ import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from "
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { postSession } from "@/lib/auth/postSession";
 import GoogleIcon from "@/components/icons/GoogleIcon";
+import PasswordStrengthBar from "@/components/auth/PasswordStrengthBar";
+import { MIN_ACCEPTABLE_SCORE } from "@/lib/auth/passwordStrength";
 
 const inputCls = "w-full bg-transparent border border-ink/20 px-4 py-3 text-base text-ink focus:border-accent outline-none";
 const labelCls = "block font-label text-[11px] tracking-wider2 text-muted mb-2";
@@ -14,11 +16,14 @@ export default function SignupForm() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [password, setPassword] = useState("");
+  const [pwScore, setPwScore] = useState(0);
 
   async function signup(formData: FormData) {
     const password = String(formData.get("password"));
     const confirm = String(formData.get("confirm"));
     if (password !== confirm) { setError("Passwords don't match."); return; }
+    if (pwScore < MIN_ACCEPTABLE_SCORE) { setError("Please choose a stronger password."); return; }
     setBusy(true); setError("");
     try {
       const cred = await createUserWithEmailAndPassword(auth, String(formData.get("email")), password);
@@ -56,14 +61,24 @@ export default function SignupForm() {
         </div>
         <div>
           <label className={labelCls} htmlFor="password">PASSWORD</label>
-          <input id="password" name="password" type="password" required minLength={6} className={inputCls} />
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={inputCls}
+          />
+          <PasswordStrengthBar password={password} onScore={setPwScore} />
         </div>
         <div>
           <label className={labelCls} htmlFor="confirm">CONFIRM PASSWORD</label>
           <input id="confirm" name="confirm" type="password" required minLength={6} className={inputCls} />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={busy} className={`${btnCls} justify-self-start`}>
+        <button type="submit" disabled={busy || pwScore < MIN_ACCEPTABLE_SCORE} className={`${btnCls} justify-self-start`}>
           {busy ? "…" : "SIGN UP →"}
         </button>
       </form>
