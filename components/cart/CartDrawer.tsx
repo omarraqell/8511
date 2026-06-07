@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCart, type CartItem } from "./CartProvider";
 import { useCartProducts, type ApiProduct } from "./useCartProducts";
 import VerifyBanner from "@/components/auth/VerifyBanner";
@@ -85,6 +86,7 @@ function CartItemRow({
 
 export default function CartDrawer() {
   const cart = useCart();
+  const router = useRouter();
   const products = useCartProducts();
   const productBySlug = new Map((products ?? []).map(p => [p.slug, p]));
 
@@ -160,6 +162,7 @@ export default function CartDrawer() {
             <VerifyBanner />
             <button
               type="button"
+              onClick={() => { cart.close(); router.push("/checkout"); }}
               className="w-full h-14 bg-[#0A0A0A] text-[#F7F7F4] font-label tracking-widest uppercase text-sm hover:bg-primary hover:text-[#0A0A0A] transition-all duration-300"
             >
               CHECKOUT
